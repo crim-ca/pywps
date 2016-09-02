@@ -3,6 +3,8 @@
 
 from pywps._compat import urlparse
 import time
+from dateutil.parser import parse as date_parser
+from datetime import datetime
 from pywps.exceptions import InvalidParameterValue
 from pywps.validator.allowed_value import RANGECLOSURETYPE
 from pywps.validator.allowed_value import ALLOWEDVALUETYPE
@@ -226,8 +228,8 @@ def convert_positiveInteger(inpt):
 
 def convert_anyURI(inpt):
     """Return value of input
-    
-    :rtype: url components 
+
+    :rtype: url components
     """
     inpt = convert_string(inpt)
     components = urlparse.urlparse(inpt)
@@ -246,8 +248,13 @@ def convert_time(inpt):
 
     :rtype: time object
     """
-    time_format = '%Y-%m-%dT%H:%M:%S%z'
-    inpt = time.strptime(convert_string(inpt), time_format)
+    # TODO: %z directive works only with python 3
+    # time_format = '%Y-%m-%dT%H:%M:%S%z'
+    # inpt = time.strptime(convert_string(inpt), time_format)
+    # TODO: return type is datetime?
+    if not isinstance(inpt, datetime):
+        inpt = convert_string(inpt)
+        inpt = date_parser(inpt)
     return inpt
 
 def convert_scale(inpt):
