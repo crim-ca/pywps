@@ -252,11 +252,11 @@ def convert_time(inpt):
     # time_format = '%Y-%m-%dT%H:%M:%S%z'
     # inpt = time.strptime(convert_string(inpt), time_format)
     # TODO: return type is datetime?
-    # if not isinstance(inpt, datetime):
-    #     inpt = convert_string(inpt)
-    #     inpt = date_parser(inpt)
-    time_format = '%Y-%m-%dT%H:%M:%S%Z'
-    inpt = time.strptime(convert_string(inpt), time_format)
+    if not isinstance(inpt, datetime):
+        inpt = convert_string(inpt)
+        inpt = date_parser(inpt)
+    #time_format = '%Y-%m-%dT%H:%M:%S%Z'
+    #inpt = time.strptime(convert_string(inpt), time_format)
     return inpt
 
 def convert_scale(inpt):
