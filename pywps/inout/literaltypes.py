@@ -12,7 +12,8 @@ from pywps._compat import PY2
 from pywps import OWS, WPS, OGCTYPE, NAMESPACES
 
 LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
-                      'positiveInteger', 'anyURI', 'time', 'scale', 'angle',
+                      'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',
+                      'scale', 'angle',
                       'nonNegativeInteger')
 
 # currently we are supporting just ^^^ data types, feel free to add support for
@@ -128,6 +129,10 @@ def get_converter(convertor):
                 convert = convert_anyURI
             elif data_type == 'time':
                 convert = convert_time
+            elif data_type == 'date':
+                convert = convert_date
+            elif data_type == 'dateTime':
+                convert = convert_datetime
             elif data_type == 'scale':
                 convert = convert_scale
             elif data_type == 'angle':
@@ -242,21 +247,47 @@ def convert_anyURI(inpt):
 
 def convert_time(inpt):
     """Return value of input
-    time formating assumed according to ISO standard
+    time formating assumed according to ISO standard:
 
-    http://www.w3.org/TR/NOTE-datetime
+    * http://www.w3.org/TR/NOTE-datetime
+    * https://www.w3.org/TR/xmlschema-2/#time
 
-    :rtype: time object
+    Examples: 12:00:00
+
+    :rtype: datetime.time object
     """
     # TODO: %z directive works only with python 3
     # time_format = '%Y-%m-%dT%H:%M:%S%z'
+    # time_format = '%Y-%m-%dT%H:%M:%S%Z'
     # inpt = time.strptime(convert_string(inpt), time_format)
-    # TODO: return type is datetime?
+    return convert_datetime(inpt).time()
+
+def convert_date(inpt):
+    """Return value of input
+    date formating according to
+
+    https://www.w3.org/TR/xmlschema-2/#date
+
+    Examples: 2016-09-20
+
+    :rtype: datetime.date object
+    """
+    return convert_datetime(inpt).date()
+
+def convert_datetime(inpt):
+    """Return value of input
+    dateTime formating according to
+
+    https://www.w3.org/TR/xmlschema-2/#dateTime
+
+    Examples: 2016-09-20T12:00:00, 2012-12-31T06:30:00Z,
+              2017-01-01T18:00:00+01:00
+
+    :rtype: datetime.datetime object
+    """
     if not isinstance(inpt, datetime):
         inpt = convert_string(inpt)
         inpt = date_parser(inpt)
-    #time_format = '%Y-%m-%dT%H:%M:%S%Z'
-    #inpt = time.strptime(convert_string(inpt), time_format)
     return inpt
 
 def convert_scale(inpt):
