@@ -4,12 +4,15 @@
 from pywps._compat import urlparse
 import time
 from dateutil.parser import parse as date_parser
-from datetime import datetime
+import datetime
 from pywps.exceptions import InvalidParameterValue
 from pywps.validator.allowed_value import RANGECLOSURETYPE
 from pywps.validator.allowed_value import ALLOWEDVALUETYPE
 from pywps._compat import PY2
 from pywps import OWS, WPS, OGCTYPE, NAMESPACES
+
+import logging
+LOGGER = logging.getLogger('PYWPS')
 
 LITERAL_DATA_TYPES = ('float', 'boolean', 'integer', 'string',
                       'positiveInteger', 'anyURI', 'time', 'date', 'dateTime',
@@ -249,22 +252,19 @@ def convert_time(inpt):
     """Return value of input
     time formating assumed according to ISO standard:
 
-    * http://www.w3.org/TR/NOTE-datetime
-    * https://www.w3.org/TR/xmlschema-2/#time
+    https://www.w3.org/TR/xmlschema-2/#time
 
     Examples: 12:00:00
 
     :rtype: datetime.time object
     """
-    # TODO: %z directive works only with python 3
-    # time_format = '%Y-%m-%dT%H:%M:%S%z'
-    # time_format = '%Y-%m-%dT%H:%M:%S%Z'
-    # inpt = time.strptime(convert_string(inpt), time_format)
-    return convert_datetime(inpt).time()
+    if not isinstance(inpt, datetime.time):
+        inpt = convert_datetime(inpt).time()
+    return inpt
 
 def convert_date(inpt):
     """Return value of input
-    date formating according to
+    date formating assumed according to ISO standard:
 
     https://www.w3.org/TR/xmlschema-2/#date
 
@@ -272,20 +272,27 @@ def convert_date(inpt):
 
     :rtype: datetime.date object
     """
-    return convert_datetime(inpt).date()
+    if not isinstance(inpt, datetime.date):
+        inpt = convert_datetime(inpt).date()
+    return inpt
 
 def convert_datetime(inpt):
     """Return value of input
-    dateTime formating according to
+    dateTime formating assumed according to ISO standard:
 
-    https://www.w3.org/TR/xmlschema-2/#dateTime
+    * http://www.w3.org/TR/NOTE-datetime
+    * https://www.w3.org/TR/xmlschema-2/#dateTime
 
     Examples: 2016-09-20T12:00:00, 2012-12-31T06:30:00Z,
               2017-01-01T18:00:00+01:00
 
     :rtype: datetime.datetime object
     """
-    if not isinstance(inpt, datetime):
+    # TODO: %z directive works only with python 3
+    # time_format = '%Y-%m-%dT%H:%M:%S%z'
+    # time_format = '%Y-%m-%dT%H:%M:%S%Z'
+    # inpt = time.strptime(convert_string(inpt), time_format)
+    if not isinstance(inpt, datetime.datetime):
         inpt = convert_string(inpt)
         inpt = date_parser(inpt)
     return inpt
