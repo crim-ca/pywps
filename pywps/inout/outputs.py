@@ -26,11 +26,9 @@ class BoundingBoxOutput(basic.BBoxInput):
     """
 
     def __init__(self, identifier, title, crss, abstract='',
-                 dimensions=2, metadata=None, min_occurs='1',
+                 dimensions=2, metadata=[], min_occurs='1',
                  max_occurs='1', as_reference=False,
                  mode=MODE.NONE):
-        if metadata is None:
-            metadata = []
         basic.BBoxInput.__init__(self, identifier, title=title,
                                  abstract=abstract, crss=crss,
                                  dimensions=dimensions, mode=mode)
@@ -49,8 +47,8 @@ class BoundingBoxOutput(basic.BBoxInput):
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))
 
-        if self.metadata:
-            doc.append(OWS.Metadata(*self.metadata))
+        for m in self.metadata:
+            doc.append(OWS.Metadata(dict(m)))
 
         bbox_data_doc = E.BoundingBoxOutput()
         doc.append(bbox_data_doc)
@@ -97,12 +95,12 @@ class ComplexOutput(basic.ComplexOutput):
         formats. The first format in the list will be used as the default.
     :param str abstract: Description of the output
     :param pywps.validator.mode.MODE mode: validation mode (none to strict)
+    :param metadata: List of metadata advertised by this process. They
+                     should be :class:`pywps.app.Common.Metadata` objects.
     """
 
     def __init__(self, identifier, title, supported_formats=None,
-                 abstract='', metadata=None, mode=MODE.NONE):
-        if metadata is None:
-            metadata = []
+                 abstract='', metadata=[], mode=MODE.NONE):
 
         basic.ComplexOutput.__init__(self, identifier, title=title,
                                      abstract=abstract,
@@ -128,7 +126,7 @@ class ComplexOutput(basic.ComplexOutput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*self.metadata))
+            doc.append(OWS.Metadata(dict(m)))
 
         doc.append(
             E.ComplexOutput(
@@ -216,12 +214,12 @@ class LiteralOutput(basic.LiteralOutput):
     :param str abstract: Input abstract
     :param str uoms: units
     :param pywps.validator.mode.MODE mode: validation mode (none to strict)
+    :param metadata: List of metadata advertised by this process. They
+                     should be :class:`pywps.app.Common.Metadata` objects.
     """
 
     def __init__(self, identifier, title, data_type='string', abstract='',
                  metadata=[], uoms=[], mode=MODE.SIMPLE):
-        if metadata is None:
-            metadata = []
         if uoms is None:
             uoms = []
         basic.LiteralOutput.__init__(self, identifier, title=title,
@@ -239,7 +237,7 @@ class LiteralOutput(basic.LiteralOutput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(m))
+            doc.append(OWS.Metadata(dict(m)))
 
         literal_data_doc = E.LiteralOutput()
 

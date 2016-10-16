@@ -8,6 +8,7 @@ import unittest
 import lxml
 import lxml.etree
 from pywps.app import Process, Service
+from pywps.app.Common import Metadata
 from pywps import WPS, OWS
 from tests.common import assert_pywps_version, client_for
 
@@ -45,7 +46,10 @@ class CapabilitiesTest(unittest.TestCase):
     def setUp(self):
         def pr1(): pass
         def pr2(): pass
-        self.client = client_for(Service(processes=[Process(pr1, 'pr1', 'Process 1'), Process(pr2, 'pr2', 'Process 2')]))
+        self.client = client_for(Service(processes=[
+            Process(pr1, 'pr1', 'Process 1', metadata=[Metadata('pr1 metadata', 'http://example.org/pr1'), Metadata('foo', 'http://example.org/foo')]),
+            Process(pr2, 'pr2', 'Process 2', metadata=[Metadata('pr2 metadata', 'http://example.org/pr2')]),
+        ]))
 
     def check_capabilities_response(self, resp):
         assert resp.status_code == 200
@@ -53,12 +57,22 @@ class CapabilitiesTest(unittest.TestCase):
         title = resp.xpath_text('/wps:Capabilities'
                                 '/ows:ServiceIdentification'
                                 '/ows:Title')
+
         assert title != ''
+
         names = resp.xpath_text('/wps:Capabilities'
                                 '/wps:ProcessOfferings'
                                 '/wps:Process'
                                 '/ows:Identifier')
+
         assert sorted(names.split()) == ['pr1', 'pr2']
+
+        metadatas = resp.xpath('/wps:Capabilities'
+                               '/wps:ProcessOfferings'
+                               '/wps:Process'
+                               '/ows:Metadata')
+
+        assert len(metadatas) == 3
 
     def test_get_request(self):
         resp = self.client.get('?Request=GetCapabilities&service=WpS')
