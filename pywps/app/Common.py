@@ -21,7 +21,7 @@ class Metadata(object):
 
     def __init__(self, title, href=None, type_='simple'):
         self.title = title
-        self.href = href
+        self.href = href or ''
         self.type = type_
 
     def __iter__(self):

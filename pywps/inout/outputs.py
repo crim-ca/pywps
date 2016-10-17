@@ -48,7 +48,7 @@ class BoundingBoxOutput(basic.BBoxInput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         bbox_data_doc = E.BoundingBoxOutput()
         doc.append(bbox_data_doc)
@@ -143,7 +143,7 @@ class ComplexOutput(basic.ComplexOutput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         doc.append(
             E.ComplexOutput(
@@ -265,7 +265,7 @@ class LiteralOutput(basic.LiteralOutput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         literal_data_doc = E.LiteralOutput()
 

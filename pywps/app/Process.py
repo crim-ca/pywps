@@ -81,8 +81,7 @@ class Process(object):
         if self.abstract:
             doc.append(OWS.Abstract(self.abstract))
         for m in self.metadata:
-            LOGGER.debug("metadata %s", m)
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
         if self.profile:
             doc.append(OWS.Profile(self.profile))
         if self.version != 'None':
@@ -112,7 +111,7 @@ class Process(object):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         for p in self.profile:
             doc.append(WPS.Profile(p))

@@ -55,7 +55,7 @@ class BoundingBoxInput(basic.BBoxInput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         bbox_data_doc = E.BoundingBoxData()
         doc.append(bbox_data_doc)
@@ -165,7 +165,7 @@ class ComplexInput(basic.ComplexInput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         doc.append(
             E.ComplexData(
@@ -285,7 +285,7 @@ class LiteralInput(basic.LiteralInput):
             doc.append(OWS.Abstract(self.abstract))
 
         for m in self.metadata:
-            doc.append(OWS.Metadata(*dict(m)))
+            doc.append(OWS.Metadata(dict(m)))
 
         literal_data_doc = E.LiteralData()
 
