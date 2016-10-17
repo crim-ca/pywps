@@ -19,6 +19,7 @@ sys.path.append(pywpsPath)
 import unittest
 
 from pywps import Process
+from pywps.app.Common import Metadata
 from pywps.inout import LiteralInput
 from pywps.inout import BoundingBoxInput
 from pywps.inout import ComplexInput
@@ -37,7 +38,8 @@ class ProcessTestCase(unittest.TestCase):
                               BoundingBoxInput("bbox", title="BBox", crss=[]),
                               ComplexInput("vector", title="Vector")
                           ],
-                          outputs=[]
+                          outputs=[],
+                          metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
         )
         inputs = {
             input.identifier: input.title

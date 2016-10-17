@@ -11,13 +11,14 @@ from pywps import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from pywps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
 from pywps.inout.literaltypes import LITERAL_DATA_TYPES
 from pywps.app.basic import xpath_ns
+from pywps.app.Common import Metadata 
 from pywps.inout.formats import Format
 from pywps.inout.literaltypes import AllowedValue
 from pywps.validator.allowed_value import ALLOWEDVALUETYPE
 
 from tests.common import assert_pywps_version, client_for
 
-ProcessDescription = namedtuple('ProcessDescription', ['identifier', 'inputs'])
+ProcessDescription = namedtuple('ProcessDescription', ['identifier', 'inputs', 'metadata'])
 
 
 def get_data_type(el):
@@ -32,7 +33,10 @@ def get_describe_result(resp):
     result = []
     for desc_el in resp.xpath('/wps:ProcessDescriptions/ProcessDescription'):
         [identifier_el] = xpath_ns(desc_el, './ows:Identifier')
+        metadata = []
         inputs = []
+        for metadata_el in xpath_ns(desc_el, './ows:Metadata'):
+            metadata.append(metadata_el.attrib['{http://www.w3.org/1999/xlink}title'])
         for input_el in xpath_ns(desc_el, './DataInputs/Input'):
             [input_identifier_el] = xpath_ns(input_el, './ows:Identifier')
             input_identifier = input_identifier_el.text
@@ -53,7 +57,7 @@ def get_describe_result(resp):
                 inputs.append((input_identifier, 'complex', formats))
             else:
                 raise RuntimeError("Can't parse input description")
-        result.append(ProcessDescription(identifier_el.text, inputs))
+        result.append(ProcessDescription(identifier_el.text, inputs, metadata))
     return result
 
 
@@ -62,15 +66,21 @@ class DescribeProcessTest(unittest.TestCase):
     def setUp(self):
         def hello(request): pass
         def ping(request): pass
-        processes = [Process(hello, 'hello', 'Process Hello'), Process(ping, 'ping', 'Process Ping')]
+        processes = [
+            Process(hello, 'hello', 'Process Hello', metadata=[Metadata('hello metadata', 'http://example.org/hello')]),
+            Process(ping, 'ping', 'Process Ping', metadata=[Metadata('ping metadata', 'http://example.org/ping')]),
+        ]
         self.client = client_for(Service(processes=processes))
 
     def test_get_request_all_args(self):
         resp = self.client.get('?Request=DescribeProcess&service=wps&version=1.0.0&identifier=all')
         identifiers = [desc.identifier for desc in get_describe_result(resp)]
+        metadata = [desc.metadata for desc in get_describe_result(resp)]
+ 
         assert 'ping' in identifiers
         assert 'hello' in identifiers
         assert_pywps_version(resp)
+        assert 'hello metadata' in [item for sublist in metadata for item in sublist]
 
     def test_get_request_zero_args(self):
         resp = self.client.get('?Request=DescribeProcess&version=1.0.0&service=wps')
@@ -131,7 +141,8 @@ class DescribeProcessInputTest(unittest.TestCase):
                 hello,
                 'hello',
                 'Process Hello',
-                inputs=[LiteralInput('the_name', 'Input name')])
+                inputs=[LiteralInput('the_name', 'Input name')],
+        )
         result = self.describe_process(hello_process)
         assert result.inputs == [('the_name', 'literal', 'integer')]
 
