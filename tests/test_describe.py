@@ -11,7 +11,7 @@ from pywps import LiteralOutput, ComplexOutput, BoundingBoxOutput
 from pywps import E, WPS, OWS, OGCTYPE, Format, NAMESPACES, OGCUNIT
 from pywps.inout.literaltypes import LITERAL_DATA_TYPES
 from pywps.app.basic import xpath_ns
-from pywps.app.Common import Metadata 
+from pywps.app.Common import Metadata
 from pywps.inout.formats import Format
 from pywps.inout.literaltypes import AllowedValue
 from pywps.validator.allowed_value import ALLOWEDVALUETYPE
@@ -35,6 +35,7 @@ def get_describe_result(resp):
         [identifier_el] = xpath_ns(desc_el, './ows:Identifier')
         metadata = []
         inputs = []
+        metadata = []
         for metadata_el in xpath_ns(desc_el, './ows:Metadata'):
             metadata.append(metadata_el.attrib['{http://www.w3.org/1999/xlink}title'])
         for input_el in xpath_ns(desc_el, './DataInputs/Input'):
@@ -76,7 +77,7 @@ class DescribeProcessTest(unittest.TestCase):
         resp = self.client.get('?Request=DescribeProcess&service=wps&version=1.0.0&identifier=all')
         identifiers = [desc.identifier for desc in get_describe_result(resp)]
         metadata = [desc.metadata for desc in get_describe_result(resp)]
- 
+
         assert 'ping' in identifiers
         assert 'hello' in identifiers
         assert_pywps_version(resp)
@@ -142,9 +143,11 @@ class DescribeProcessInputTest(unittest.TestCase):
                 'hello',
                 'Process Hello',
                 inputs=[LiteralInput('the_name', 'Input name')],
+                metadata=[Metadata('process metadata 1', 'http://example.org/1'), Metadata('process metadata 2', 'http://example.org/2')]
         )
         result = self.describe_process(hello_process)
         assert result.inputs == [('the_name', 'literal', 'integer')]
+        assert result.metadata == ['process metadata 1', 'process metadata 2']
 
     def test_one_literal_integer_input(self):
         def hello(request): pass

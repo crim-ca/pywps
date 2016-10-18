@@ -9,6 +9,7 @@ from pywps._compat import text_type
 from pywps import E, WPS, OWS, OGCTYPE, NAMESPACES
 from pywps.inout import basic
 from pywps.inout.storage import FileStorage
+from pywps.inout.formats import Format
 from pywps.validator.mode import MODE
 import lxml.etree as etree
 
@@ -23,6 +24,8 @@ class BoundingBoxOutput(basic.BBoxInput):
     :param int min_occurs: minimum occurence
     :param int max_occurs: maximum occurence
     :param pywps.validator.mode.MODE mode: validation mode (none to strict)
+    :param metadata: List of metadata advertised by this process. They
+                     should be :class:`pywps.app.Common.Metadata` objects.
     """
 
     def __init__(self, identifier, title, crss, abstract='',
@@ -112,10 +115,9 @@ class ComplexOutput(basic.ComplexOutput):
                      should be :class:`pywps.app.Common.Metadata` objects.
     """
 
-    def __init__(self, identifier, title,  supported_formats=None,
+    def __init__(self, identifier, title, supported_formats=None,
                  abstract='', metadata=None,
                  as_reference=False, mode=MODE.NONE):
-
         if metadata is None:
             metadata = []
 
