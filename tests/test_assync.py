@@ -8,7 +8,7 @@ import unittest
 import time
 from pywps import Service, Process, LiteralInput, LiteralOutput
 from pywps import WPS, OWS
-from tests.common import client_for, assert_response_accepted
+from pywps.tests import client_for, assert_response_accepted
 
 
 def create_sleep():
@@ -59,6 +59,6 @@ class ExecuteTest(unittest.TestCase):
         resp = client.post_xml(doc=request_doc)
         assert_response_accepted(resp)
 
-        # To Do:
+        # TODO:
         # . extract the status URL from the response
         # . send a status request
