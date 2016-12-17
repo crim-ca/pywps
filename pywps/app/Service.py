@@ -561,6 +561,10 @@ class Service(object):
         if 'PYWPS_CFG' not in os.environ and environ_cfg:
             LOGGER.debug('Setting PYWPS_CFG to %s', environ_cfg)
             os.environ['PYWPS_CFG'] = environ_cfg
+        dods_conf = http_request.environ.get('DODS_CONF')
+        if dods_conf:
+            LOGGER.debug('Setting DODS_CONF to %s', dods_conf)
+            os.environ['DODS_CONF'] = dods_conf
 
         try:
             wps_request = WPSRequest(http_request)
