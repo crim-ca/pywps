@@ -562,14 +562,15 @@ class Service(object):
             LOGGER.debug('Setting PYWPS_CFG to %s', environ_cfg)
             os.environ['PYWPS_CFG'] = environ_cfg
         # TODO: find a better way for dynamic configuration
+        LOGGER.debug("request header %s", http_request.headers)
         dynamic_config = config.get_config_value('server', 'dynamic_config')
         if dynamic_config:
             for key in dynamic_config.split(','):
                 env_key = key.strip()
-                if env_key in http_request.environ:
-                    env_value = http_request.environ[env_key]
+                if env_key in http_request.headers:
+                    env_value = http_request.headers[env_key]
                     if env_value:
-                        os.environ[env_key] = http_request.environ[env_key]
+                        os.environ[env_key] = http_request.headers[env_key]
                         LOGGER.debug('Setting %s to %s', env_key, env_value)
 
         try:
