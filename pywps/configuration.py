@@ -86,6 +86,7 @@ def load_configuration(cfgfiles=None):
     CONFIG.set('server', 'outputpath', outputpath)
     CONFIG.set('server', 'workdir', tempfile.gettempdir())
     CONFIG.set('server', 'parallelprocesses', '2')
+    CONFIG.set('server', 'dynamic_config', '')
 
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'file', '')

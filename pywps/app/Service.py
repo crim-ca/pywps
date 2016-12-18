@@ -561,10 +561,16 @@ class Service(object):
         if 'PYWPS_CFG' not in os.environ and environ_cfg:
             LOGGER.debug('Setting PYWPS_CFG to %s', environ_cfg)
             os.environ['PYWPS_CFG'] = environ_cfg
-        home_dir = http_request.environ.get('HOME')
-        if home_dir:
-            LOGGER.debug('Setting HOME to %s', home_dir)
-            os.environ['HOME'] = home_dir
+        # TODO: find a better way for dynamic configuration
+        dynamic_config = config.get_config_value('server', 'dynamic_config')
+        if dynamic_config:
+            for key in dynamic_config.split(','):
+                env_key = key.strip()
+                if env_key in http_request.environ:
+                    env_value = http_request.environ[env_key]
+                    if env_value:
+                        os.environ[env_key] = http_request.environ[env_key]
+                        LOGGER.debug('Setting %s to %s', env_key, env_value)
 
         try:
             wps_request = WPSRequest(http_request)
