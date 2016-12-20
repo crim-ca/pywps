@@ -294,8 +294,22 @@ class Service(object):
             # just for execute
             process = copy.deepcopy(process)
 
+            LOGGER.debug('Request HEADERS: %s', wps_request.http_request.headers)
             workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
-            tempdir = tempfile.mkdtemp(prefix='pywps_process_', dir=workdir)
+            prefix = 'pywps_process_'
+            request_id = wps_request.http_request.headers.get('X-Request-Id')
+            LOGGER.debug("Request ID %s", request_id)
+            if request_id:
+                tempdir = os.path.join(workdir, prefix + request_id)
+                if os.path.isdir(tempdir):
+                    try:
+                        os.chmod(tempdir, mode=0700)
+                    except OSError:
+                        tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
+                else:
+                    tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
+            else:
+                tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
             process.set_workdir(tempdir)
         except KeyError:
             raise InvalidParameterValue("Unknown process '%r'" % identifier, 'Identifier')
