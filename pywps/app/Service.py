@@ -293,24 +293,7 @@ class Service(object):
             # so that processes are not overriding each other
             # just for execute
             process = copy.deepcopy(process)
-
-            LOGGER.debug('Request HEADERS: %s', wps_request.http_request.headers)
-            workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
-            prefix = config.get_config_value('server', 'prefix')
-            request_id = wps_request.http_request.headers.get('X-Request-Id')
-            LOGGER.debug("Request ID %s", request_id)
-            if request_id:
-                tempdir = os.path.join(workdir, prefix + request_id)
-                if os.path.isdir(tempdir):
-                    try:
-                        os.chmod(tempdir, 0700)
-                    except OSError:
-                        tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
-                else:
-                    tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
-            else:
-                tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
-            process.set_workdir(tempdir)
+            process.set_workdir(self._get_tempdir(wps_request))
         except KeyError:
             raise InvalidParameterValue("Unknown process '%r'" % identifier, 'Identifier')
 
@@ -514,6 +497,26 @@ class Service(object):
             raise MissingParameterValue(locator=source.identifier)
 
         return outinputs
+
+    def _get_tempdir(self, wps_request):
+        workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
+        prefix = config.get_config_value('server', 'prefix')
+        request_id = wps_request.http_request.headers.get('X-Request-Id')
+        LOGGER.debug("Request ID %s", request_id)
+        tempdir = None
+        if request_id:
+            prepared_dir = os.path.join(workdir, prefix + request_id)
+            if os.path.isdir(prepared_dir):
+                try:
+                    os.chmod(prepared_dir, 0700)
+                    tempdir = prepared_dir
+                    LOGGER.debug("Using tempdir with request-id: %s", tempdir)
+                except OSError:
+                    pass
+        if not tempdir:
+            tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
+            LOGGER.debug("Created tempdir: %s", tempdir)
+        return tempdir
 
     def _set_grass(self):
         """Set environment variables needed for GRASS GIS support
