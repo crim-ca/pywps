@@ -499,21 +499,12 @@ class Service(object):
         return outinputs
 
     def _get_tempdir(self, wps_request):
-        workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
-        prefix = config.get_config_value('server', 'prefix')
-        request_id = wps_request.http_request.headers.get('X-Request-Id')
-        LOGGER.debug("Request ID %s", request_id)
-        tempdir = None
-        if request_id:
-            prepared_dir = os.path.join(workdir, prefix + request_id)
-            if os.path.isdir(prepared_dir):
-                try:
-                    os.chmod(prepared_dir, 0700)
-                    tempdir = prepared_dir
-                    LOGGER.debug("Using tempdir with request-id: %s", tempdir)
-                except OSError:
-                    pass
-        if not tempdir:
+        if 'HOME' in wps_request.http_request.headers:
+            tempdir = wps_request.http_request.headers['HOME']
+            LOGGER.debug("Using tempdir accoring to request: %s", tempdir)
+        else:
+            workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
+            prefix = config.get_config_value('server', 'prefix')
             tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
             LOGGER.debug("Created tempdir: %s", tempdir)
         return tempdir
