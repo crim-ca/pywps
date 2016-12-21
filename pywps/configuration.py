@@ -85,6 +85,7 @@ def load_configuration(cfgfiles=None):
     CONFIG.set('server', 'outputurl', 'file://%s' % outputpath)
     CONFIG.set('server', 'outputpath', outputpath)
     CONFIG.set('server', 'workdir', tempfile.gettempdir())
+    CONFIG.set('server', 'prefix', 'pywps_process_')
     CONFIG.set('server', 'parallelprocesses', '2')
     # If this flag is enabled it will set the HOME environment
     # for each process to its current workdir (a temp folder).
