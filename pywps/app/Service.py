@@ -303,7 +303,7 @@ class Service(object):
                 tempdir = os.path.join(workdir, prefix + request_id)
                 if os.path.isdir(tempdir):
                     try:
-                        os.chmod(tempdir, mode=0700)
+                        os.chmod(tempdir, 0700)
                     except OSError:
                         tempdir = tempfile.mkdtemp(prefix=prefix, dir=workdir)
                 else:
