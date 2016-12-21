@@ -296,7 +296,7 @@ class Service(object):
 
             LOGGER.debug('Request HEADERS: %s', wps_request.http_request.headers)
             workdir = os.path.abspath(config.get_config_value('server', 'workdir'))
-            prefix = 'pywps_process_'
+            prefix = config.get_config_value('server', 'prefix')
             request_id = wps_request.http_request.headers.get('X-Request-Id')
             LOGGER.debug("Request ID %s", request_id)
             if request_id:
