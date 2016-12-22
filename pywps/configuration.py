@@ -90,6 +90,9 @@ def load_configuration(cfgfiles=None):
     # If this flag is enabled it will set the HOME environment
     # for each process to its current workdir (a temp folder).
     CONFIG.set('server', 'sethomedir', 'false')
+    # If this flag is enabled the workdir will be set to a path
+    # given by the X-Requested-Workdir HTTP header variable.
+    CONFIG.set('server', 'setworkdir', 'false')
 
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'file', '')
