@@ -22,6 +22,7 @@ from pywps.dblog import log_request, update_response
 
 from collections import deque
 import os
+import stat
 import sys
 import uuid
 import copy
@@ -507,7 +508,7 @@ class Service(object):
                 if os.path.isdir(requested_dir):
                     try:
                         # make sure rights are set correctly
-                        os.chmod(requested_dir, 0700)
+                        os.chmod(requested_dir, stat.S_IRWXU)
                     except OSError:
                         LOGGER.warn("No access to requested workdir: %s", requested_dir)
                     else:
