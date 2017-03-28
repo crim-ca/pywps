@@ -33,7 +33,6 @@ def get_describe_result(resp):
     result = []
     for desc_el in resp.xpath('/wps:ProcessDescriptions/ProcessDescription'):
         [identifier_el] = xpath_ns(desc_el, './ows:Identifier')
-        metadata = []
         inputs = []
         metadata = []
         for metadata_el in xpath_ns(desc_el, './ows:Metadata'):
