@@ -54,21 +54,17 @@ class CapabilitiesTest(unittest.TestCase):
         title = resp.xpath_text('/wps:Capabilities'
                                 '/ows:ServiceIdentification'
                                 '/ows:Title')
-
         assert title != ''
-
         names = resp.xpath_text('/wps:Capabilities'
                                 '/wps:ProcessOfferings'
                                 '/wps:Process'
                                 '/ows:Identifier')
-
         assert sorted(names.split()) == ['pr1', 'pr2']
 
         metadatas = resp.xpath('/wps:Capabilities'
                                '/wps:ProcessOfferings'
                                '/wps:Process'
                                '/ows:Metadata')
-
         assert len(metadatas) == 2
 
     def test_get_request(self):
