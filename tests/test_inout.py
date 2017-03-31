@@ -48,7 +48,7 @@ class IOHandlerTest(unittest.TestCase):
         """
         self.assertEqual(self.iohandler.validator, emptyvalidator)
 
-    def _test_outout(self, source_type):
+    def _test_outout(self, source_type, suffix=''):
         """Test all outputs"""
 
         self.assertEqual(source_type, self.iohandler.source_type,
@@ -60,7 +60,9 @@ class IOHandlerTest(unittest.TestCase):
             source = StringIO(text_type(self._value))
             self.iohandler.stream = source
 
-        file_handler = open(self.iohandler.file)
+        file_path = self.iohandler.file
+        self.assertTrue(file_path.endswith(suffix))
+        file_handler = open(file_path)
         self.assertEqual(self._value, file_handler.read(), 'File obtained')
         file_handler.close()
 
@@ -86,11 +88,11 @@ class IOHandlerTest(unittest.TestCase):
         self.assertEqual(stream_val, self.iohandler.memory_object,
                          'Memory object obtained')
 
-
     def test_data(self):
         """Test data input IOHandler"""
         self.iohandler.data = self._value
-        self._test_outout(SOURCE_TYPE.DATA)
+        self.iohandler.data_format = Format('foo', extension='.foo')
+        self._test_outout(SOURCE_TYPE.DATA, '.foo')
 
     def test_stream(self):
         """Test stream input IOHandler"""
@@ -122,6 +124,26 @@ class IOHandlerTest(unittest.TestCase):
     def test_memory(self):
         """Test data input IOHandler"""
         self.skipTest('Memory object not implemented')
+
+    def test_data_bytes(self):
+        self._value = b'aa'
+
+        self.iohandler.data = self._value
+        self.assertEqual(self.iohandler.source_type, SOURCE_TYPE.DATA,
+                         'Source type properly set')
+
+        # test the data handle
+        self.assertEqual(self._value, self.iohandler.data, 'Data obtained')
+
+        # test the file handle
+        file_handler = open(self.iohandler.file, 'rb')
+        self.assertEqual(self._value, file_handler.read(), 'File obtained')
+        file_handler.close()
+
+        # test the stream handle
+        stream_data = self.iohandler.stream.read()
+        self.iohandler.stream.close()
+        self.assertEqual(self._value, stream_data, 'Stream obtained')
 
 
 class ComplexInputTest(unittest.TestCase):
