@@ -96,6 +96,11 @@ def load_configuration(cfgfiles=None):
     # given by the X-Requested-Workdir HTTP header variable.
     CONFIG.set('server', 'setworkdir', 'false')
 
+    CONFIG.add_section('processing')
+    CONFIG.set('processing', 'mode', 'default')
+    CONFIG.set('processing', 'host', 'localhost')
+    CONFIG.set('processing', 'path', os.path.dirname(os.path.realpath(sys.argv[0])))
+
     CONFIG.add_section('logging')
     CONFIG.set('logging', 'file', '')
     CONFIG.set('logging', 'level', 'DEBUG')

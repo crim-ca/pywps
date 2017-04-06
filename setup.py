@@ -59,6 +59,9 @@ CONFIG = {
         'pywps/inout/formats'
     ],
     'scripts': [],
+    'entry_points': {
+        'console_scripts': [
+            'joblauncher=pywps.processing.job:launcher', ]},
 }
 
 if sys.version_info.major < 3:
