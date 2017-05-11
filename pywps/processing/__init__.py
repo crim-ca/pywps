@@ -17,9 +17,16 @@ DEFAULT = MULTIPROCESSING
 
 
 def Process(process, wps_request, wps_response):
+    """
+    Factory method (looking like a class) to return the
+    configured processing class.
+
+    :return: instance of :class:`pywps.processing.Processing`
+    """
     mode = config.get_config_value("processing", "mode")
     LOGGER.info("Processing mode: %s", mode)
     if mode == SLURM:
-        return Slurm(process, wps_request, wps_response)
+        process = Slurm(process, wps_request, wps_response)
     else:
-        return MultiProcessing(process, wps_request, wps_response)
+        process = MultiProcessing(process, wps_request, wps_response)
+    return process
