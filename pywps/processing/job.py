@@ -4,7 +4,11 @@
 # licensed under MIT, Please consult LICENSE.txt for details     #
 ##################################################################
 
+import os
 import tempfile
+
+import logging
+LOGGER = logging.getLogger("PYWPS")
 
 
 class Job(object):
@@ -30,15 +34,18 @@ class Job(object):
         return self.process.uuid
 
     def dump(self):
+        LOGGER.debug('dump job ...')
         import dill
         filename = tempfile.mkstemp(prefix='job_', suffix='.dump', dir=self.workdir)[1]
         with open(filename, 'w') as fp:
             dill.dump(self, fp)
+            LOGGER.debug("dumped job status to %s", filename)
             return filename
         return None
 
     @classmethod
     def load(cls, filename):
+        LOGGER.debug('load job ...')
         import dill
         with open(filename) as fp:
             job = dill.load(fp)
@@ -51,17 +58,22 @@ class Job(object):
 
 class JobLauncher(object):
     """
-    :class:`JobLauncher` is a command line tool to launch a job from a file with the dumped job state.
+    :class:`JobLauncher` is a command line tool to launch a job from a file
+    with a dumped job state.
 
-    Example call: ``joblauncher job-1001.txt``
+    Example call: ``joblauncher -c /etc/pywps.cfg job-1001.dump``
     """
     def create_parser(self):
         import argparse
         parser = argparse.ArgumentParser(prog="joblauncher")
+        parser.add_argument("-c", "--config", help="Path to pywps configuration.")
         parser.add_argument("filename", help="File with dumped pywps job object.")
         return parser
 
     def run(self, args):
+        if args.config:
+            LOGGER.debug("using pywps_cfg=%s", args.config)
+            os.environ['PYWPS_CFG'] = args.config
         self._run_job(args.filename)
 
     def _run_job(self, filename):
