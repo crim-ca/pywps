@@ -86,6 +86,8 @@ def load_configuration(cfgfiles=None):
     outputpath = tempfile.gettempdir()
     CONFIG.set('server', 'outputurl', 'file://%s' % outputpath)
     CONFIG.set('server', 'outputpath', outputpath)
+    # list of allowed input paths (file url input) seperated by ':'
+    CONFIG.set('server', 'allowedinputpaths', '')
     CONFIG.set('server', 'workdir', tempfile.gettempdir())
     CONFIG.set('server', 'prefix', 'pywps_process_')
     CONFIG.set('server', 'parallelprocesses', '2')
