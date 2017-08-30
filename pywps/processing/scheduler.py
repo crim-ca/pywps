@@ -68,3 +68,58 @@ class Scheduler(Processing):
         except Exception as e:
             raise SchedulerNotAvailable("Could not submit job: %s" % str(e))
         return jobid
+
+class CeleryTaskCaller(Processing):
+    """
+    :class:`Scheduler` is processing implementation to run jobs on schedulers
+    like slurm, grid-engine and torque. It uses the drmaa python library
+    as client to launch jobs on a scheduler system.
+
+    See: http://drmaa-python.readthedocs.io/en/latest/index.html
+    """
+
+    def start(self):
+        self.job.wps_response.update_status('Submitting job ...', 0)
+        # run remote pywps process
+        jobid = self.run_job()
+        self.job.wps_response.update_status('Your job has been submitted with ID %s'.format(jobid), 0)
+
+    def run_job(self):
+        LOGGER.info("Submitting job ...")
+        try:
+            from celery_joblauncher import task_joblauncher
+
+
+            # dump job to file
+            dump_filename = self.job.dump()
+            if not dump_filename:
+                raise Exception("Could not dump job status.")
+            # prepare remote command
+            #remoteCommand = os.path.join(
+            #    config.get_config_value('processing', 'path'),
+            #    'joblauncher')
+
+            remoteCommand = 'joblauncher'
+
+            if os.getenv("PYWPS_CFG"):
+                import shutil
+                cfg_file = os.path.join(self.job.workdir, "pywps.cfg")
+                shutil.copy2(os.getenv('PYWPS_CFG'), cfg_file)
+                LOGGER.debug("Copied pywps config: %s", cfg_file)
+                args = [' -c', cfg_file, dump_filename]
+            else:
+                args = [' -c', dump_filename]
+
+            # run job
+            cmd = remoteCommand+' '.join(args)
+            job_result = task_joblauncher.delay(cmd)
+            LOGGER.info('Your job has been submitted with ID %s', job_result.id)
+            # show status
+            #import time
+            #time.sleep(1)
+            #status = job_result.state
+            #LOGGER.info('Job status: %s', job_result.state)
+
+        except Exception as e:
+            raise SchedulerNotAvailable("Could not submit job: %s" % str(e))
+        return job_result.id

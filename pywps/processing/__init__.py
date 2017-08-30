@@ -6,7 +6,7 @@
 
 import pywps.configuration as config
 from pywps.processing.basic import MultiProcessing
-from pywps.processing.scheduler import Scheduler
+from pywps.processing.scheduler import Scheduler, CeleryTaskCaller
 # api only
 from pywps.processing.basic import Processing  # noqa: F401
 from pywps.processing.job import Job  # noqa: F401
@@ -30,6 +30,10 @@ def Process(process, wps_request, wps_response):
     LOGGER.info("Processing mode: %s", mode)
     if mode == SCHEDULER:
         process = Scheduler(process, wps_request, wps_response)
+        #process = CeleryTaskCaller(process, wps_request, wps_response)
+
     else:
-        process = MultiProcessing(process, wps_request, wps_response)
+        #process = MultiProcessing(process, wps_request, wps_response)
+        process = CeleryTaskCaller(process, wps_request, wps_response)
+
     return process
