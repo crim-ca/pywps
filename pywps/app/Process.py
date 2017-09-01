@@ -189,7 +189,7 @@ class Process(object):
         :return: wps_response or None
         """
 
-        maxparallel = int(config.get_config_value('server', 'parallelprocesses'))
+        maxparallel = -1  # int(config.get_config_value('server', 'parallelprocesses'))
         running = dblog.get_running().count()
         stored = dblog.get_stored().count()
 
