@@ -14,4 +14,5 @@ def task_joblauncher(cmd):
     #print 'Task launched by celery worker'
     #cmd = 'joblauncher ' + ' '.join(args)
     #cmd = 'echo Tasklaunched'
-    os.system(cmd)
+    os.system('echo SUCCESS:TaskIsBeeingExecuted')
+    #os.system(cmd)
