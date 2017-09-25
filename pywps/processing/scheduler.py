@@ -113,6 +113,7 @@ class CeleryTaskCaller(Processing):
             # run job
             cmd = remoteCommand+' '.join(args)
             job_result = task_joblauncher.delay(cmd)
+            #job_result = task_joblauncher.delay(self.job)
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
             # show status
             #import time

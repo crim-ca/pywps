@@ -11,8 +11,9 @@ app = Celery('joblauncher', broker='pyamqp://'+amqp_user+':'+amqp_password+'@'+a
 
 @app.task
 def task_joblauncher(cmd):
-    #print 'Task launched by celery worker'
+    print 'Task launched by celery worker'
     #cmd = 'joblauncher ' + ' '.join(args)
     #cmd = 'echo Tasklaunched'
-    os.system('echo SUCCESS:TaskIsBeeingExecuted')
-    #os.system(cmd)
+    #os.system('echo SUCCESS:TaskIsBeeingExecuted')
+
+    os.system(cmd)
