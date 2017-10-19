@@ -8,6 +8,7 @@ import os
 import pywps.configuration as config
 from pywps.processing.basic import Processing
 from pywps.exceptions import SchedulerNotAvailable
+import json
 
 import logging
 LOGGER = logging.getLogger("PYWPS")
@@ -87,39 +88,21 @@ class CeleryTaskCaller(Processing):
     def run_job(self):
         LOGGER.info("Submitting job ...")
         try:
-            from celery_joblauncher import task_joblauncher
+            from celery_joblauncher import task_joblauncher, Req
 
+            '''
+            dockerim_version = self.job.wps_request.inputs['dockerim_version'][0].data
+            dockerim_name = self.job.wps_request.inputs['dockerim_name'][0].data
+            input_data = self.job.wps_request.inputs['input_data'][0].data
+            input_data = json.loads(input_data)
+            registry_url = self.job.wps_request.inputs['registry_url'][0].data
+            req = Req(_b=None, _url=registry_url, _imname=dockerim_name, _ver=dockerim_version, _indata=input_data)
+            req_json = req.__dict__
+            '''
+            req_json = self.job.process._handler(self.job.wps_request, self.job.wps_response)
+            job_result = task_joblauncher.delay(req_json)
 
-            # dump job to file
-            dump_filename = self.job.dump()
-            if not dump_filename:
-                raise Exception("Could not dump job status.")
-            # prepare remote command
-            #remoteCommand = os.path.join(
-            #    config.get_config_value('processing', 'path'),
-            #    'joblauncher')
-
-            remoteCommand = 'joblauncher'
-
-            if os.getenv("PYWPS_CFG"):
-                import shutil
-                cfg_file = os.path.join(self.job.workdir, "pywps.cfg")
-                shutil.copy2(os.getenv('PYWPS_CFG'), cfg_file)
-                LOGGER.debug("Copied pywps config: %s", cfg_file)
-                args = [' -c', cfg_file, dump_filename]
-            else:
-                args = [' -c', dump_filename]
-
-            # run job
-            cmd = remoteCommand+' '.join(args)
-            job_result = task_joblauncher.delay(cmd)
-            #job_result = task_joblauncher.delay(self.job)
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
-            # show status
-            #import time
-            #time.sleep(1)
-            #status = job_result.state
-            #LOGGER.info('Job status: %s', job_result.state)
 
         except Exception as e:
             raise SchedulerNotAvailable("Could not submit job: %s" % str(e))
