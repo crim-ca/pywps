@@ -90,15 +90,6 @@ class CeleryTaskCaller(Processing):
         try:
             from celery_joblauncher import task_joblauncher, Req
 
-            '''
-            dockerim_version = self.job.wps_request.inputs['dockerim_version'][0].data
-            dockerim_name = self.job.wps_request.inputs['dockerim_name'][0].data
-            input_data = self.job.wps_request.inputs['input_data'][0].data
-            input_data = json.loads(input_data)
-            registry_url = self.job.wps_request.inputs['registry_url'][0].data
-            req = Req(_b=None, _url=registry_url, _imname=dockerim_name, _ver=dockerim_version, _indata=input_data)
-            req_json = req.__dict__
-            '''
             req_json = self.job.process._handler(self.job.wps_request, self.job.wps_response)
             job_result = task_joblauncher.delay(req_json)
 
