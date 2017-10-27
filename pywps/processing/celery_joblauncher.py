@@ -10,15 +10,7 @@ app = Celery('joblauncher', broker='pyamqp://'+amqp_user+':'+amqp_password+'@'+a
 
 
 class Req(object):
-    body = None
-    registry_url = None
-    dockerim_name = None
-    dockerim_version = None
-    input_data = {}
-    param_as_envar = True
-    volume_mapping = {}
-
-    def __init__(self, _b=None, _url=None, _imname=None, _ver=None, _indata={}, volume_mapping={}, param_as_envar=True):
+    def __init__(self, _b=None, _url=None, _imname=None, _ver=None, _indata={}, volume_mapping={}, queue_name='celery', param_as_envar=True):
         self.body = _b
         self.registry_url = _url
         self.dockerim_name = _imname
@@ -26,6 +18,7 @@ class Req(object):
         self.dockerim_version = _ver
         self.param_as_envar = param_as_envar
         self.volume_mapping = volume_mapping
+        self.queue_name = queue_name
 
 
 def get_env_cmd(envar=dict()):
@@ -63,9 +56,9 @@ def run_image(req):
     return retcode
 
 
-@app.task
-def task_joblauncher(req):
-    print 'Task launched by celery worker'
+@app.task(bind=True)
+def task_joblauncher(self, req):
+    print 'Task {0} launched by celery worker'.format(self.request.id)
     from collections import namedtuple
     req_object = namedtuple('Req', req.keys())(*req.values())
 

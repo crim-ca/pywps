@@ -91,8 +91,8 @@ class CeleryTaskCaller(Processing):
             from celery_joblauncher import task_joblauncher, Req
 
             req_json = self.job.process._handler(self.job.wps_request, self.job.wps_response)
-            job_result = task_joblauncher.delay(req_json)
-
+            #job_result = task_joblauncher.delay(req_json)
+            job_result = task_joblauncher.apply_async(args=[req_json], queue=req_json['queue_name'])
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
 
         except Exception as e:
