@@ -95,6 +95,8 @@ class CeleryTaskCaller(Processing):
             #job_result = task_joblauncher.delay(req_json)
             # There should be a check if the queue_name is in the config list, otherwise it starts a new queue
             # but no worker will be listening to it
+
+
             job_result = task_joblauncher.apply_async(args=[req_json], queue=req_json['queue_name'])
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
         except Exception as e:

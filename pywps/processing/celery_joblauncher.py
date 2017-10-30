@@ -1,7 +1,7 @@
 from celery import Celery
 import os
 
-amqp_user = os.getenv('AMQP_USER', 'guest')
+amqp_user = os.getenv('AMQP_USERNAME', 'guest')
 amqp_password = os.getenv('AMQP_PASSWORD', 'guest')
 amqp_hostname = os.getenv('AMQP_HOST', 'localhost')
 amqp_port = os.getenv('AMQP_PORT', '5672')
