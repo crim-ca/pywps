@@ -103,6 +103,9 @@ class WPSRequest(object):
 
         wpsrequest = self
 
+        def parse_get_status(http_request):
+            wpsrequest.task_id = _get_get_param(http_request, 'task_id')
+
         def parse_get_getcapabilities(http_request):
             """Parse GET GetCapabilities request
             """
@@ -168,6 +171,8 @@ class WPSRequest(object):
             return parse_get_describeprocess
         elif self.operation == 'execute':
             return parse_get_execute
+        elif self.operation == 'status':
+            return parse_get_status
         else:
             raise OperationNotSupported(
                 'Unknown request %r' % self.operation, operation)

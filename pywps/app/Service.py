@@ -9,6 +9,7 @@ import logging
 import tempfile
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
+
 from pywps import WPS, OWS
 from pywps._compat import PY2
 from pywps._compat import urlopen
@@ -20,6 +21,8 @@ from pywps.exceptions import MissingParameterValue, NoApplicableCode, InvalidPar
     StorageNotSupported, FileURLNotSupported
 from pywps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pywps.dblog import log_request, update_response
+
+from pywps.processing.celery_utils import uuid_task
 
 from collections import deque, OrderedDict
 import os
@@ -56,6 +59,7 @@ class Service(object):
             LOGGER.addHandler(fh)
         else:  # NullHandler
             LOGGER.addHandler(logging.NullHandler())
+
 
     def get_capabilities(self):
         process_elements = [p.capabilities_xml()
@@ -604,6 +608,19 @@ class Service(object):
 
         return outinputs
 
+    def get_status(self, task_id):
+        state =  uuid_task(task_id, 'status')  # return dict with metadata
+        # return generate_xml_from_state(state)
+        doc = WPS.ProcessDescriptions()
+        doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
+            'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsDescribeProcess_response.xsd'
+        doc.attrib['service'] = 'WPS'
+        doc.attrib['version'] = '1.0.0'
+        doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
+        doc.text = 'Status: ' + str(state)
+
+        return xml_response(doc)
+
     @Request.application
     def __call__(self, http_request):
 
@@ -619,8 +636,10 @@ class Service(object):
             LOGGER.info('Request: %s', wps_request.operation)
             if wps_request.operation in ['getcapabilities',
                                          'describeprocess',
-                                         'execute']:
-                log_request(request_uuid, wps_request)
+                                         'execute',
+                                         'status']:
+                if wps_request.operation != 'status':
+                    log_request(request_uuid, wps_request)
                 response = None
                 if wps_request.operation == 'getcapabilities':
                     response = self.get_capabilities()
@@ -634,6 +653,11 @@ class Service(object):
                         wps_request,
                         request_uuid
                     )
+
+                elif wps_request.operation == 'status':
+                    response = self.get_status(wps_request.task_id)
+
+
                 update_response(request_uuid, response, close=True)
                 return response
             else:

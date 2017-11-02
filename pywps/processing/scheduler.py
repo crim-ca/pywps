@@ -83,21 +83,22 @@ class CeleryTaskCaller(Processing):
         self.job.wps_response.update_status('Submitting job ...', 0)
         # run remote pywps process
         jobid = self.run_job()
+
+        self.job.process._set_uuid(jobid) # set UUID of the task instead of the wps_request
         self.job.wps_response.update_status('Your job has been submitted with ID %s'.format(jobid), 0)
 
 
     def run_job(self):
         LOGGER.info("Submitting job ...")
         try:
-            from celery_joblauncher import task_joblauncher, Req
+            from celery_joblauncher import task_joblauncher
 
-            req_json = self.job.process._handler(self.job.wps_request, self.job.wps_response)
+            req_body = self.job.process._handler(self.job.wps_request, self.job.wps_response)
             #job_result = task_joblauncher.delay(req_json)
             # There should be a check if the queue_name is in the config list, otherwise it starts a new queue
             # but no worker will be listening to it
 
-
-            job_result = task_joblauncher.apply_async(args=[req_json], queue=req_json['queue_name'])
+            job_result = task_joblauncher.apply_async(args=[req_body], queue=req_body['queue_name'])
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
         except Exception as e:
             raise SchedulerNotAvailable("Could not submit job: %s" % str(e))
