@@ -5,9 +5,9 @@ from celery_request import Request
 from celery.utils.log import get_task_logger
 import imp
 
-
-
-config_file_path = os.getenv('VRP_CONFIGURATION', 'ogc_config.py')
+dir_path = os.path.dirname(os.path.realpath(__file__))
+default_configuration_path = dir_path+'/default_configuration.py'
+config_file_path = os.getenv('VRP_CONFIGURATION', default_configuration_path)
 config_module = imp.load_source('ogc_config', config_file_path)
 config_module_dict = vars(config_module)
 
