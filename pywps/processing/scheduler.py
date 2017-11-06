@@ -91,14 +91,14 @@ class CeleryTaskCaller(Processing):
     def run_job(self):
         LOGGER.info("Submitting job ...")
         try:
-            from celery_joblauncher import task_joblauncher
+            process_request = self.job.process._handler(self.job.wps_request, self.job.wps_response)
+            from celery_utils import CELERY_APP
+            task_name = '{}.{}'.format(CELERY_APP.main, 'joblauncher')
+            job_result = CELERY_APP.send_task(
+                task_name,
+                queue=process_request['queue_name'],
+                args=(process_request['request_body'],))
 
-            req_body = self.job.process._handler(self.job.wps_request, self.job.wps_response)
-            #job_result = task_joblauncher.delay(req_json)
-            # There should be a check if the queue_name is in the config list, otherwise it starts a new queue
-            # but no worker will be listening to it
-
-            job_result = task_joblauncher.apply_async(args=[req_body], queue=req_body['queue_name'])
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)
         except Exception as e:
             raise SchedulerNotAvailable("Could not submit job: %s" % str(e))

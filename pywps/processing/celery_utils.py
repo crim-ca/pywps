@@ -1,7 +1,26 @@
 import logging
 import sys
+import os
+import imp
+from celery import Celery
 
 ENCODING = 'utf-8'
+
+dir_path = os.path.dirname(os.path.realpath(__file__))
+default_configuration_path = dir_path+'/default_configuration.py'
+config_file_path = os.getenv('VRP_CONFIGURATION', default_configuration_path)
+config_module = imp.load_source('ogc_config', config_file_path)
+config_module_dict = vars(config_module)
+
+# This is the same function as in celery_init.py of ServiceGateway
+def configure(config):
+    proj_name = config['CELERY_PROJ_NAME']
+    celery_app = Celery(proj_name)
+    celery_app.config_from_object(config['CELERY'])
+    return celery_app
+
+CELERY_APP = configure(config_module_dict)
+
 class WorkerExceptionWrapper(Exception):
     """
     Wrapper for worker exception
@@ -150,8 +169,6 @@ def async_call(fct, *args, **kwargs):
 
     return out_dict['return_value']
 
-
-from celery_joblauncher import CELERY_APP
 
 def uuid_task(task_id, status_or_cancel='status', service_route='.'):
     """
