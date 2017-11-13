@@ -244,7 +244,10 @@ def construct_status_doc_from_state(state):
     task_id = state['uuid']
     wps_status_request = file_url + '?service=wps&request=status&task_id=' + task_id
     doc.attrib['statusLocation'] = wps_status_request
-    if curr_status == 'PROGRESS':
+    if curr_status == 'PENDING':
+        status_doc = format_progression(curr_status, 0)
+        doc.append(status_doc)
+    elif curr_status == 'PROGRESS':
         progression_percentage = state['metadata']['current']
         status_doc = format_progression(curr_status, progression_percentage)
         doc.append(status_doc)
