@@ -92,6 +92,7 @@ class CeleryTaskCaller(Processing):
         LOGGER.info("Submitting job ...")
         try:
             process_request = self.job.process._handler(self.job.wps_request, self.job.wps_response)
+
             from celery_utils import CELERY_APP
             task_name = '{}.{}'.format(CELERY_APP.main, 'joblauncher')
             job_result = CELERY_APP.send_task(

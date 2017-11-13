@@ -4,6 +4,12 @@ import os
 import imp
 from celery import Celery
 
+import pywps.configuration as config
+from pywps import WPS, OWS
+import time
+
+
+
 ENCODING = 'utf-8'
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
@@ -203,3 +209,56 @@ def uuid_task(task_id, status_or_cancel='status', service_route='.'):
     #state = validate_state(request_uuid, service_name, state)
 
     return state
+
+
+def format_progression(statusId, percentCompleted):
+    return WPS.Status(
+        WPS.ProcessStarted(
+            statusId,
+            percentCompleted=str(percentCompleted)
+        ),
+        creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+    )
+
+def format_success(statusId):
+    return WPS.Status(
+        WPS.ProcessSucceeded(statusId),
+        creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+    )
+
+def construct_status_doc_from_state(state):
+    doc = WPS.ExecuteResponse()
+    doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
+        'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd'
+    doc.attrib['service'] = 'WPS'
+    doc.attrib['version'] = '1.0.0'
+    doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
+    doc.attrib['serviceInstance'] = '%s%s' % (
+        config.get_config_value('server', 'url'),
+        '?service=WPS&request=GetCapabilities'
+    )
+
+    curr_status = state['status']
+
+    file_url = config.get_config_value('server', 'outputurl')
+    task_id = state['uuid']
+    wps_status_request = file_url + '?service=wps&request=status&task_id=' + task_id
+    doc.attrib['statusLocation'] = wps_status_request
+    if curr_status == 'PROGRESS':
+        progression_percentage = state['metadata']['current']
+        status_doc = format_progression(curr_status, progression_percentage)
+        doc.append(status_doc)
+    elif curr_status == 'SUCCESS':
+        status_doc = format_success(curr_status)
+        doc.append(status_doc)
+        output_elements = WPS.Output(
+            OWS.Identifier('output'),
+            OWS.Title('output')
+        )
+        doc.append(WPS.ProcessOutputs(*output_elements))
+        result_doc = WPS.Data()
+        result = state['result']
+        result_doc.text = str(result)
+        doc.append(result_doc)
+
+    return doc

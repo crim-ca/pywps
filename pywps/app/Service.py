@@ -22,7 +22,7 @@ from pywps.exceptions import MissingParameterValue, NoApplicableCode, InvalidPar
 from pywps.inout.inputs import ComplexInput, LiteralInput, BoundingBoxInput
 from pywps.dblog import log_request, update_response
 
-from pywps.processing.celery_utils import uuid_task
+from pywps.processing.celery_utils import uuid_task, construct_status_doc_from_state
 
 from collections import deque, OrderedDict
 import os
@@ -609,7 +609,7 @@ class Service(object):
         return outinputs
 
     def get_status(self, task_id):
-        state =  uuid_task(task_id, 'status')  # return dict with metadata
+        state = uuid_task(task_id, 'status')  # return dict with metadata
         # return generate_xml_from_state(state)
         doc = WPS.ProcessDescriptions()
         doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
@@ -618,6 +618,8 @@ class Service(object):
         doc.attrib['version'] = '1.0.0'
         doc.attrib['{http://www.w3.org/XML/1998/namespace}lang'] = 'en-US'
         doc.text = 'Status: ' + str(state)
+
+        doc = construct_status_doc_from_state(state)
 
         return xml_response(doc)
 
