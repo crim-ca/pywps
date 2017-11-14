@@ -59,7 +59,6 @@ def get_request_info(uuid, app):
     async_result = app.AsyncResult(id=uuid)
     status = async_result.state
     result = async_result.result
-    metadata = async_result.info
 
     # Result for PENDING, PROGRESS and SUCCESS can be sent as is
 
@@ -85,8 +84,7 @@ def get_request_info(uuid, app):
     information = {
         'uuid': uuid,
         'status': status,
-        'result': result,
-        'metadata': metadata
+        'result': result
     }
     return information
 
@@ -226,6 +224,20 @@ def format_success(statusId):
         creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
     )
 
+def format_failure(message):
+    return WPS.Status(
+        WPS.ProcessFailed(
+            WPS.ExceptionReport(
+                OWS.Exception(
+                    OWS.ExceptionText(message),
+                    exceptionCode='NoApplicableCode',
+                    locater='None'
+                )
+            )
+        ),
+        creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
+    )
+
 def construct_status_doc_from_state(state):
     doc = WPS.ExecuteResponse()
     doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
@@ -238,17 +250,23 @@ def construct_status_doc_from_state(state):
         '?service=WPS&request=GetCapabilities'
     )
 
+
     curr_status = state['status']
 
     file_url = config.get_config_value('server', 'outputurl')
     task_id = state['uuid']
-    wps_status_request = file_url + '?service=wps&request=status&task_id=' + task_id
+    wps_status_request = file_url + '?version=1.0.0&service=wps&request=status&task_id=' + task_id
     doc.attrib['statusLocation'] = wps_status_request
-    if curr_status == 'PENDING':
-        status_doc = format_progression(curr_status, 0)
-        doc.append(status_doc)
-    elif curr_status == 'PROGRESS':
-        progression_percentage = state['metadata']['current']
+
+    process_doc = WPS.Process(
+        OWS.Identifier("ogc"),
+        OWS.Title("ogc")
+    )
+    process_doc.attrib['{http://www.opengis.net/wps/1.0.0}processVersion'] = '1.0.0'
+    doc.append(process_doc)
+
+    if curr_status == 'PROGRESS':
+        progression_percentage = state['result']['current']
         status_doc = format_progression(curr_status, progression_percentage)
         doc.append(status_doc)
     elif curr_status == 'SUCCESS':
@@ -263,5 +281,11 @@ def construct_status_doc_from_state(state):
         result = state['result']
         result_doc.text = str(result)
         doc.append(result_doc)
+    elif curr_status == 'FAILURE':
+        status_doc = format_failure(curr_status)
+        doc.append(status_doc)
+    else:
+        status_doc = format_progression(curr_status, 0)
+        doc.append(status_doc)
 
     return doc
