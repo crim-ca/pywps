@@ -77,14 +77,18 @@ def load_configuration(cfgfiles=None):
     CONFIG.add_section('server')
     CONFIG.set('server', 'encoding', 'utf-8')
     CONFIG.set('server', 'language', 'en-US')
-    CONFIG.set('server', 'url', 'http://localhost/wps')
+
+    host_url = os.getenv('HOST_URL', 'http://localhost/wps')
+    CONFIG.set('server', 'url', host_url)
+
     CONFIG.set('server', 'maxprocesses', '30')
     CONFIG.set('server', 'maxsingleinputsize', '1mb')
     CONFIG.set('server', 'maxrequestsize', '3mb')
     CONFIG.set('server', 'temp_path', tempfile.gettempdir())
     CONFIG.set('server', 'processes_path', '')
     outputpath = tempfile.gettempdir()
-    CONFIG.set('server', 'outputurl', 'file://%s' % outputpath)
+    output_url = os.getenv('OUTPUT_URL', 'file://%s' % outputpath)
+    CONFIG.set('server', 'outputurl', output_url)
     CONFIG.set('server', 'outputpath', outputpath)
     # list of allowed input paths (file url input) seperated by ':'
     CONFIG.set('server', 'allowedinputpaths', '')
