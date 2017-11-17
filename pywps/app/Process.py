@@ -179,9 +179,9 @@ class Process(object):
         file_url = config.get_config_value('server', 'outputurl')
 
         self.status_location = os.path.join(file_path, str(self.uuid)) + '.xml'
-        #self.status_url = os.path.join(file_url, str(self.uuid)) + '.xml'
-        wps_status_request = file_url+'?version=1.0.0&service=wps&request=status&task_id='+str(self.uuid)
-        self.status_url = wps_status_request
+        self.status_url = os.path.join(file_url, str(self.uuid)) + '.xml' + '?service=WPS'
+        #wps_status_request = file_url+'?version=1.0.0&service=wps&request=status&task_id='+str(self.uuid)
+        #self.status_url = wps_status_request
 
     def _execute_process(self, async, wps_request, wps_response):
         """Uses :module:`pywps.processing` module for sending process to

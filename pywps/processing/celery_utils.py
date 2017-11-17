@@ -255,8 +255,7 @@ def construct_status_doc_from_state(state):
 
     file_url = config.get_config_value('server', 'outputurl')
     task_id = state['uuid']
-    wps_status_request = file_url + '?version=1.0.0&service=wps&request=status&task_id=' + task_id
-    doc.attrib['statusLocation'] = wps_status_request
+    doc.attrib['statusLocation'] = os.path.join(file_url, str(task_id)) + '.xml' + '?service=WPS'
 
     process_doc = WPS.Process(
         OWS.Identifier("ogc"),

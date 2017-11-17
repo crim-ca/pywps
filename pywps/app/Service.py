@@ -625,6 +625,16 @@ class Service(object):
             LOGGER.debug('Setting PYWPS_CFG to %s', environ_cfg)
             os.environ['PYWPS_CFG'] = environ_cfg
 
+        # get status if route corresponds to output xml status
+        file_url = config.get_config_value('server', 'outputurl')
+        curr_path = urlparse(file_url).path
+        if curr_path in http_request.path:
+            xml_status_file = os.path.basename(http_request.path)
+            task_id = os.path.splitext(xml_status_file)[0]
+            response = self.get_status(task_id)
+            update_response(request_uuid, response, close=True)
+            return response
+
         try:
             wps_request = WPSRequest(http_request)
             LOGGER.info('Request: %s', wps_request.operation)
