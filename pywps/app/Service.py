@@ -10,7 +10,7 @@ import tempfile
 from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Request, Response
 
-from pywps import WPS, OWS
+from pywps import WPS, OWS, dblog
 from pywps._compat import PY2
 from pywps._compat import urlopen
 from pywps._compat import urlparse
@@ -610,8 +610,10 @@ class Service(object):
 
     def get_status(self, task_id):
         state = uuid_task(task_id, 'status')  # return dict with metadata
+        request_json = dblog.get_stored_request(uuid=task_id)
+        curr_process = self.processes[request_json['identifier']]
 
-        doc = construct_status_doc_from_state(state)
+        doc = construct_status_doc_from_state(state, curr_process)
 
         return xml_response(doc)
 

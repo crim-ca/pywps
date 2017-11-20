@@ -8,6 +8,7 @@ import os
 import pywps.configuration as config
 from pywps.processing.basic import Processing
 from pywps.exceptions import SchedulerNotAvailable
+from pywps import dblog
 import json
 
 import logging
@@ -83,8 +84,10 @@ class CeleryTaskCaller(Processing):
         self.job.wps_response.update_status('Submitting job ...', 0)
         # run remote pywps process
         jobid = self.run_job()
-
         self.job.process._set_uuid(jobid) # set UUID of the task instead of the wps_request
+        stored = dblog.get_stored().count()
+        self.job.process._store_process(stored, self.job.wps_request, self.job.wps_response)
+
         self.job.wps_response.update_status('Your job has been submitted with ID %s'.format(jobid), 0)
 
 

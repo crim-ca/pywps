@@ -7,7 +7,7 @@ from celery import Celery
 import pywps.configuration as config
 from pywps import WPS, OWS
 import time
-
+LOGGER = logging.getLogger("PYWPS")
 
 
 ENCODING = 'utf-8'
@@ -238,7 +238,7 @@ def format_failure(message):
         creationTime=time.strftime('%Y-%m-%dT%H:%M:%SZ', time.localtime())
     )
 
-def construct_status_doc_from_state(state):
+def construct_status_doc_from_state(state, process):
     doc = WPS.ExecuteResponse()
     doc.attrib['{http://www.w3.org/2001/XMLSchema-instance}schemaLocation'] = \
         'http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsExecute_response.xsd'
@@ -258,8 +258,8 @@ def construct_status_doc_from_state(state):
     doc.attrib['statusLocation'] = os.path.join(file_url, str(task_id)) + '.xml'
 
     process_doc = WPS.Process(
-        OWS.Identifier("ogc"),
-        OWS.Title("ogc")
+        OWS.Identifier(process.identifier),
+        OWS.Title(process.title)
     )
     process_doc.attrib['{http://www.opengis.net/wps/1.0.0}processVersion'] = '1.0.0'
     doc.append(process_doc)
@@ -271,15 +271,20 @@ def construct_status_doc_from_state(state):
     elif curr_status == 'SUCCESS':
         status_doc = format_success(curr_status)
         doc.append(status_doc)
-        output_elements = WPS.Output(
-            OWS.Identifier('output'),
-            OWS.Title('output')
-        )
-        doc.append(WPS.ProcessOutputs(*output_elements))
-        result_doc = WPS.Data()
+
         result = state['result']
-        result_doc.text = str(result)
-        doc.append(result_doc)
+
+        # fill outputs with result
+        app_outputs = result['result']
+        for output in process.outputs:
+            if output.identifier in app_outputs.keys():
+                output.data = app_outputs[output.identifier]
+            else:
+                LOGGER.debug('Result key from queue does not match output identifier {}'.format(output.identifier))
+
+        output_elements = [o.execute_xml() for o in process.outputs]
+        doc.append(WPS.ProcessOutputs(*output_elements))
+
     elif curr_status == 'FAILURE':
         status_doc = format_failure(curr_status)
         doc.append(status_doc)

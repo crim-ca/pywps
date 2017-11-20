@@ -223,3 +223,13 @@ def remove_stored(uuid):
     session.delete(request)
     session.commit()
     session.close()
+
+def get_stored_request(uuid):
+    session = get_session()
+    request_instance = session.query(RequestInstance).filter_by(uuid=str(uuid)).first()
+    request_jsons = request_instance.request
+    if not PY2:
+        request_jsons = request_jsons.decode('utf-8')
+    request_dict = json.loads(request_jsons)
+
+    return request_dict

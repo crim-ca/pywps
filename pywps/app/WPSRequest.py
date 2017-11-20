@@ -321,6 +321,7 @@ class WPSRequest(object):
             'operation': self.operation,
             'version': self.version,
             'language': self.language,
+            'identifier': self.identifier,
             'identifiers': self.identifiers,
             'store_execute': self.store_execute,
             'status': self.status,
