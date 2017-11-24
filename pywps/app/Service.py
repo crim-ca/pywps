@@ -611,6 +611,8 @@ class Service(object):
     def get_status(self, task_id):
         state = uuid_task(task_id, 'status')  # return dict with metadata
         request_json = dblog.get_stored_request(uuid=task_id)
+        if not request_json:
+            raise InvalidParameterValue(description='invalid task_id')
         curr_process = self.processes[request_json['identifier']]
 
         doc = construct_status_doc_from_state(state, curr_process)

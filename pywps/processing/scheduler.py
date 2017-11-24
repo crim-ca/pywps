@@ -95,12 +95,30 @@ class CeleryTaskCaller(Processing):
         LOGGER.info("Submitting job ...")
         try:
             process_request = self.job.process._handler(self.job.wps_request, self.job.wps_response)
+            IaaS_deploy_execute = process_request['cloud_params']['IaaS_deploy_execute']
+            broker_host = IaaS_deploy_execute['BROKER_HOST']
+            broker_port = IaaS_deploy_execute['BROKER_PORT']
+            queue_name = IaaS_deploy_execute['QUEUE_NAME']
 
-            from celery_utils import CELERY_APP
+            from celery_utils import config_module_dict, CELERY_APP
+            broker_username = config_module_dict['BROKER_ADMIN_UNAME']
+            broker_password = config_module_dict['BROKER_ADMIN_PASS']
+
+            new_broker_url = "amqp://{0}:{1}@{2}:{3}".format(
+                broker_username,
+                broker_password,
+                broker_host,
+                broker_port
+            )
+
+            config_module_dict_new_broker = config_module_dict
+            config_module_dict_new_broker['CELERY']['BROKER_URL'] = new_broker_url
+            CELERY_APP.config_from_object(config_module_dict_new_broker['CELERY'])
+
             task_name = '{}.{}'.format(CELERY_APP.main, 'joblauncher')
             job_result = CELERY_APP.send_task(
                 task_name,
-                queue=process_request['queue_name'],
+                queue=queue_name,
                 args=(process_request['request_body'],))
 
             LOGGER.info('Your job has been submitted with ID %s', job_result.id)

@@ -23,6 +23,7 @@ def configure(config):
     proj_name = config['CELERY_PROJ_NAME']
     celery_app = Celery(proj_name)
     celery_app.config_from_object(config['CELERY'])
+
     return celery_app
 
 CELERY_APP = configure(config_module_dict)
@@ -249,7 +250,6 @@ def construct_status_doc_from_state(state, process):
         config.get_config_value('server', 'url'),
         '?service=WPS&request=GetCapabilities'
     )
-
 
     curr_status = state['status']
 
